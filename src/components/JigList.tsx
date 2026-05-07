@@ -72,7 +72,11 @@ export default function JigList({ profile }: { profile: Profile | null }) {
       .select('*')
       .order('no', { ascending: true })
 
-    if (!showArchived) query = query.not('status', 'in', '("廃棄済","返却済")')
+    if (showArchived) {
+      query = query.in('status', ['廃棄済', '返却済'])
+    } else {
+      query = query.not('status', 'in', '("廃棄済","返却済")')
+    }
     if (filterStatus) query = query.eq('status', filterStatus)
     if (filterCategory) query = query.eq('category', filterCategory)
     if (search) {
@@ -117,14 +121,14 @@ export default function JigList({ profile }: { profile: Profile | null }) {
         </h1>
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => setShowArchived(v => !v)}
+            onClick={() => { setShowArchived(v => !v); setSelectedCustomer(null) }}
             className={`text-sm px-3 py-2 rounded-lg border transition ${
               showArchived
-                ? 'bg-gray-200 text-gray-700 border-gray-300'
+                ? 'bg-red-100 text-red-700 border-red-200'
                 : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
             }`}
           >
-            {showArchived ? '廃棄・返却を非表示' : '廃棄・返却を表示'}
+            {showArchived ? '← 通常一覧に戻る' : '廃棄・返却済み'}
           </button>
           <button
             onClick={() => exportCSV(displayJigs)}
