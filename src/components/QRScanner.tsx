@@ -24,7 +24,12 @@ export default function QRScanner() {
           setResult(decodedText)
           scanner.stop()
           setScanning(false)
-          router.push(`/jigs/${decodedText}`)
+          try {
+            const url = new URL(decodedText)
+            router.push(url.pathname)
+          } catch {
+            router.push(`/jigs/${decodedText}`)
+          }
         },
         undefined
       )

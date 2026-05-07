@@ -101,7 +101,7 @@ export default function QRPrintView({ jigs }: { jigs: Jig[] }) {
                 />
               </div>
               <div className="flex-shrink-0">
-                <QRCode value={jig.jig_id} size={90} />
+                <QRCode value={`https://jig-management.vercel.app/jigs/${jig.jig_id}`} size={90} />
                 <p className="text-xs font-mono text-center mt-1 text-gray-500">{jig.jig_id}</p>
               </div>
               <div className="flex-1 min-w-0 text-xs space-y-0.5">

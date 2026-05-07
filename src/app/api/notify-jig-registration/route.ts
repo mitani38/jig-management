@@ -16,7 +16,9 @@ const CC = 'yuichiro-mitani@mitanigoukin.co.jp'
 export async function POST(req: NextRequest) {
   const jig = await req.json()
 
-  const qrDataUrl = await QRCode.toDataURL(jig.jig_id, {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://jig-management.vercel.app'
+  const jigUrl = `${appUrl}/jigs/${jig.jig_id}`
+  const qrDataUrl = await QRCode.toDataURL(jigUrl, {
     width: 300,
     margin: 2,
     errorCorrectionLevel: 'M',

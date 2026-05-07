@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 import type { Jig, Profile } from '@/types'
@@ -28,12 +28,40 @@ function exportCSV(jigs: Jig[]) {
   URL.revokeObjectURL(url)
 }
 
+function JigCard({ jig }: { jig: Jig }) {
+  return (
+    <Link href={`/jigs/${jig.jig_id}`}>
+      <div className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition cursor-pointer border border-transparent hover:border-blue-200">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
+              <span className="text-xs font-mono text-gray-400">#{jig.no}</span>
+              <span className="font-semibold text-gray-800 truncate">{jig.customer}</span>
+              {jig.category && (
+                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{jig.category}</span>
+              )}
+            </div>
+            <p className="text-sm text-gray-600 truncate">{jig.project_name}</p>
+            <p className="text-xs text-gray-400 mt-0.5">{jig.product_name} {jig.storage_location && `｜ ${jig.storage_location} ${jig.storage_area || ''}`}</p>
+          </div>
+          <div className="flex-shrink-0">
+            <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[jig.status || ''] || 'bg-gray-100 text-gray-600'}`}>
+              {jig.status}
+            </span>
+          </div>
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 export default function JigList({ profile }: { profile: Profile | null }) {
   const [jigs, setJigs] = useState<Jig[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
+  const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null)
   const supabase = createClient()
 
   const fetchJigs = useCallback(async () => {
@@ -58,24 +86,37 @@ export default function JigList({ profile }: { profile: Profile | null }) {
 
   useEffect(() => {
     fetchJigs()
-
-    // リアルタイム更新
     const channel = supabase
       .channel('jigs-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jigs' }, fetchJigs)
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [fetchJigs, supabase])
 
+  const customers = useMemo(() =>
+    Array.from(new Set(jigs.map(j => j.customer).filter(Boolean))).sort()
+  , [jigs])
+
+  const displayJigs = selectedCustomer
+    ? jigs.filter(j => j.customer === selectedCustomer)
+    : jigs
+
+  const displayCount = displayJigs.length
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-4">
+    <div className="max-w-6xl mx-auto px-4 py-4">
+      {/* ヘッダー */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg font-bold text-gray-800">治具一覧 <span className="text-sm font-normal text-gray-500">({jigs.length}件)</span></h1>
+        <h1 className="text-lg font-bold text-gray-800">
+          治具一覧{' '}
+          <span className="text-sm font-normal text-gray-500">
+            ({selectedCustomer ? `${selectedCustomer} ` : ''}{displayCount}件)
+          </span>
+        </h1>
         <div className="flex gap-2">
           <button
-            onClick={() => exportCSV(jigs)}
-            disabled={jigs.length === 0}
+            onClick={() => exportCSV(displayJigs)}
+            disabled={displayCount === 0}
             className="bg-green-700 text-white text-sm px-3 py-2 rounded-lg hover:bg-green-600 disabled:opacity-40"
           >
             CSV出力
@@ -94,7 +135,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
           type="text"
           placeholder="🔍 客先・案件名・治具ID・図面番号で検索"
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => { setSearch(e.target.value); setSelectedCustomer(null) }}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <div className="flex gap-2">
@@ -121,37 +162,89 @@ export default function JigList({ profile }: { profile: Profile | null }) {
         </div>
       </div>
 
-      {/* 治具リスト */}
       {loading ? (
         <div className="text-center py-12 text-gray-400">読み込み中...</div>
-      ) : jigs.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">治具が見つかりません</div>
       ) : (
-        <div className="space-y-2">
-          {jigs.map(jig => (
-            <Link key={jig.id} href={`/jigs/${jig.jig_id}`}>
-              <div className="bg-white rounded-xl shadow-sm p-4 hover:shadow-md transition cursor-pointer border border-transparent hover:border-blue-200">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-xs font-mono text-gray-400">#{jig.no}</span>
-                      <span className="font-semibold text-gray-800 truncate">{jig.customer}</span>
-                      {jig.category && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{jig.category}</span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 truncate">{jig.project_name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{jig.product_name} {jig.storage_location && `｜ ${jig.storage_location} ${jig.storage_area || ''}`}</p>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <span className={`text-xs px-2 py-1 rounded-full font-medium ${STATUS_COLORS[jig.status || ''] || 'bg-gray-100 text-gray-600'}`}>
-                      {jig.status}
-                    </span>
-                  </div>
-                </div>
+        /* サイドバー + リスト レイアウト（PC） */
+        <div className="flex gap-4">
+          {/* 左サイドバー：客先一覧 */}
+          <div className="hidden sm:block w-48 flex-shrink-0">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden sticky top-4">
+              <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">客先</p>
               </div>
-            </Link>
-          ))}
+              <div className="py-1 max-h-[70vh] overflow-y-auto">
+                <button
+                  onClick={() => setSelectedCustomer(null)}
+                  className={`w-full text-left px-3 py-2.5 text-sm transition flex items-center justify-between gap-1 ${
+                    selectedCustomer === null
+                      ? 'bg-blue-50 text-blue-800 font-semibold'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="truncate">すべて</span>
+                  <span className="text-xs text-gray-400 flex-shrink-0">{jigs.length}</span>
+                </button>
+                {customers.map(customer => {
+                  const count = jigs.filter(j => j.customer === customer).length
+                  return (
+                    <button
+                      key={customer}
+                      onClick={() => setSelectedCustomer(customer)}
+                      className={`w-full text-left px-3 py-2.5 text-sm transition flex items-center justify-between gap-1 border-t border-gray-50 ${
+                        selectedCustomer === customer
+                          ? 'bg-blue-50 text-blue-800 font-semibold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="truncate">{customer}</span>
+                      <span className="text-xs text-gray-400 flex-shrink-0">{count}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* スマホ用：客先ボタン横スクロール */}
+          <div className="sm:hidden w-full mb-3">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border transition ${
+                  selectedCustomer === null
+                    ? 'bg-blue-800 text-white border-blue-800'
+                    : 'bg-white text-gray-600 border-gray-200'
+                }`}
+              >
+                すべて
+              </button>
+              {customers.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setSelectedCustomer(c)}
+                  className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border transition ${
+                    selectedCustomer === c
+                      ? 'bg-blue-800 text-white border-blue-800'
+                      : 'bg-white text-gray-600 border-gray-200'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 右：治具リスト */}
+          <div className="flex-1 min-w-0">
+            {displayJigs.length === 0 ? (
+              <div className="text-center py-12 text-gray-400">治具が見つかりません</div>
+            ) : (
+              <div className="space-y-2">
+                {displayJigs.map(jig => <JigCard key={jig.id} jig={jig} />)}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
