@@ -18,6 +18,7 @@ export default function NavBar({ profile }: Props) {
 
   const navItems = [
     { href: '/dashboard', label: '一覧', icon: '📋' },
+    { href: '/admin/jigs/new', label: '新規登録', icon: '➕' },
     { href: '/scan', label: 'QRスキャン', icon: '📷' },
     ...(profile?.role === 'admin' ? [{ href: '/admin', label: '管理', icon: '⚙️' }] : []),
   ]
