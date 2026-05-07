@@ -45,6 +45,7 @@ export interface JigHistory {
 export const JIG_STATUS_OPTIONS = [
   '保管（客先資産）',
   '使用中',
+  '不明',
   '廃棄済',
   '返却済',
   'その他',

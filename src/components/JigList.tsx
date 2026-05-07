@@ -7,6 +7,7 @@ import type { Jig, Profile } from '@/types'
 const STATUS_COLORS: Record<string, string> = {
   '保管（客先資産）': 'bg-blue-100 text-blue-800',
   '使用中': 'bg-yellow-100 text-yellow-800',
+  '不明': 'bg-orange-100 text-orange-700',
   '廃棄済': 'bg-red-100 text-red-800',
   '返却済': 'bg-gray-100 text-gray-600',
   'その他': 'bg-purple-100 text-purple-800',
@@ -121,7 +122,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
         </h1>
         <div className="flex gap-2 items-center">
           <button
-            onClick={() => { setShowArchived(v => !v); setSelectedCustomer(null) }}
+            onClick={() => { setShowArchived(v => !v); setSelectedCustomer(null); setFilterStatus('') }}
             className={`text-sm px-3 py-2 rounded-lg border transition ${
               showArchived
                 ? 'bg-red-100 text-red-700 border-red-200'
@@ -161,10 +162,19 @@ export default function JigList({ profile }: { profile: Profile | null }) {
             className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-sm"
           >
             <option value="">すべての状態</option>
-            <option>保管（客先資産）</option>
-            <option>使用中</option>
-            <option>廃棄済</option>
-            <option>返却済</option>
+            {showArchived ? (
+              <>
+                <option>廃棄済</option>
+                <option>返却済</option>
+              </>
+            ) : (
+              <>
+                <option>保管（客先資産）</option>
+                <option>使用中</option>
+                <option>不明</option>
+                <option>その他</option>
+              </>
+            )}
           </select>
           <select
             value={filterCategory}
