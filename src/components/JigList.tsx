@@ -12,6 +12,22 @@ const STATUS_COLORS: Record<string, string> = {
   'その他': 'bg-purple-100 text-purple-800',
 }
 
+function exportCSV(jigs: Jig[]) {
+  const headers = ['No', '治具ID', '客先', '案件名', '図面番号', '指令書番号', '客先注文番号', '品名', '分類', '保管場所', '保管エリア', '状態', '備考']
+  const rows = jigs.map(j => [
+    j.no, j.jig_id, j.customer, j.project_name, j.drawing_number, j.work_order_number,
+    j.customer_order_number, j.product_name, j.category, j.storage_location, j.storage_area, j.status, j.notes,
+  ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`))
+  const csv = '﻿' + [headers, ...rows].map(r => r.join(',')).join('\r\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `治具一覧_${new Date().toLocaleDateString('ja-JP').replace(/\//g, '')}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 export default function JigList({ profile }: { profile: Profile | null }) {
   const [jigs, setJigs] = useState<Jig[]>([])
   const [loading, setLoading] = useState(true)
@@ -56,11 +72,20 @@ export default function JigList({ profile }: { profile: Profile | null }) {
     <div className="max-w-5xl mx-auto px-4 py-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-lg font-bold text-gray-800">治具一覧 <span className="text-sm font-normal text-gray-500">({jigs.length}件)</span></h1>
-        {profile?.role === 'admin' && (
-          <Link href="/admin/jigs/new" className="bg-blue-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700">
-            ＋ 新規登録
-          </Link>
-        )}
+        <div className="flex gap-2">
+          <button
+            onClick={() => exportCSV(jigs)}
+            disabled={jigs.length === 0}
+            className="bg-green-700 text-white text-sm px-3 py-2 rounded-lg hover:bg-green-600 disabled:opacity-40"
+          >
+            CSV出力
+          </button>
+          {profile?.role === 'admin' && (
+            <Link href="/admin/jigs/new" className="bg-blue-800 text-white text-sm px-4 py-2 rounded-lg hover:bg-blue-700">
+              ＋ 新規登録
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* 検索・フィルター */}

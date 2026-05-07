@@ -22,11 +22,55 @@ export async function POST(req: NextRequest) {
     errorCorrectionLevel: 'M',
   })
 
-  const qrBuffer = await QRCode.toBuffer(jig.jig_id, {
-    width: 400,
-    margin: 2,
-    errorCorrectionLevel: 'M',
-  })
+  const labelHtml = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+@page { size: A5 portrait; margin: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Helvetica Neue', Arial, sans-serif; width: 148mm; height: 210mm; padding: 8mm; }
+.outer { width: 100%; height: 100%; border: 2px solid #1e3a8a; border-radius: 4mm; overflow: hidden; }
+.header { background: #1e3a8a; color: #fff; padding: 3mm 5mm; }
+.header h1 { font-size: 12pt; font-weight: bold; }
+.header p { font-size: 8pt; opacity: 0.8; margin-top: 1mm; }
+.body { padding: 5mm; display: flex; gap: 5mm; }
+.qr-block { flex-shrink: 0; text-align: center; }
+.qr-block img { width: 55mm; height: 55mm; display: block; }
+.qr-id { font-family: monospace; font-size: 8pt; color: #374151; margin-top: 2mm; }
+.info-table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+.info-table tr { border-bottom: 1px solid #e5e7eb; }
+.info-table th { width: 24mm; padding: 2.5mm 2mm; text-align: left; color: #6b7280; font-weight: normal; white-space: nowrap; vertical-align: top; }
+.info-table td { padding: 2.5mm 2mm; color: #111827; font-weight: 600; }
+.footer { padding: 2mm 5mm; border-top: 1px solid #e5e7eb; font-size: 7pt; color: #9ca3af; }
+</style>
+</head>
+<body>
+<div class="outer">
+  <div class="header">
+    <h1>治具・金型 識別ラベル</h1>
+    <p>三谷合金製作所 治具管理システム</p>
+  </div>
+  <div class="body">
+    <div class="qr-block">
+      <img src="${qrDataUrl}" alt="QR" />
+      <p class="qr-id">${jig.jig_id}</p>
+    </div>
+    <table class="info-table">
+      <tr><th>客先</th><td>${jig.customer || '—'}</td></tr>
+      <tr><th>案件名</th><td>${jig.project_name || '—'}</td></tr>
+      <tr><th>指令書番号</th><td>${jig.work_order_number || '—'}</td></tr>
+      <tr><th>図面番号</th><td>${jig.drawing_number || '—'}</td></tr>
+      <tr><th>品名</th><td>${jig.product_name || '—'}</td></tr>
+      <tr><th>分類</th><td>${jig.category || '—'}</td></tr>
+      <tr><th>保管場所</th><td>${[jig.storage_location, jig.storage_area].filter(Boolean).join(' ') || '—'}</td></tr>
+      <tr><th>状態</th><td>${jig.status || '—'}</td></tr>
+    </table>
+  </div>
+  <div class="footer">登録日: ${new Date().toLocaleDateString('ja-JP')} ／ 三谷合金製作所</div>
+</div>
+</body>
+</html>`
 
   const row = (label: string, value: string) =>
     `<tr>
@@ -91,9 +135,9 @@ export async function POST(req: NextRequest) {
       html,
       attachments: [
         {
-          filename: `QRラベル_${jig.jig_id}.png`,
-          content: qrBuffer,
-          contentType: 'image/png',
+          filename: `治具ラベル_${jig.jig_id}.html`,
+          content: Buffer.from(labelHtml, 'utf-8'),
+          contentType: 'text/html; charset=utf-8',
         },
       ],
     })
