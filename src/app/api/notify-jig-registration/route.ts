@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import QRCode from 'qrcode'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+})
 
 const TO = 'deki@mitanigoukin.co.jp'
 const CC = 'yuichiro-mitani@mitanigoukin.co.jp'
@@ -76,24 +82,24 @@ export async function POST(req: NextRequest) {
   const subject = ['【治具新規登録】', jig.customer, jig.project_name]
     .filter(Boolean).join(' ')
 
-  const { error } = await resend.emails.send({
-    from: '治具管理システム <onboarding@resend.dev>',
-    to: [TO],
-    cc: [CC],
-    subject,
-    html,
-    attachments: [
-      {
-        filename: `QRラベル_${jig.jig_id}.png`,
-        content: qrBuffer,
-        contentType: 'image/png',
-      },
-    ],
-  })
-
-  if (error) {
+  try {
+    await transporter.sendMail({
+      from: `治具管理システム <${process.env.GMAIL_USER}>`,
+      to: TO,
+      cc: CC,
+      subject,
+      html,
+      attachments: [
+        {
+          filename: `QRラベル_${jig.jig_id}.png`,
+          content: qrBuffer,
+          contentType: 'image/png',
+        },
+      ],
+    })
+  } catch (error) {
     console.error('Email send error:', error)
-    return NextResponse.json({ error }, { status: 500 })
+    return NextResponse.json({ error: String(error) }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })
