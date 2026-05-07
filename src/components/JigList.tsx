@@ -62,6 +62,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
   const [filterStatus, setFilterStatus] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
   const supabase = createClient()
 
   const fetchJigs = useCallback(async () => {
@@ -71,6 +72,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
       .select('*')
       .order('no', { ascending: true })
 
+    if (!showArchived) query = query.not('status', 'in', '("廃棄済","返却済")')
     if (filterStatus) query = query.eq('status', filterStatus)
     if (filterCategory) query = query.eq('category', filterCategory)
     if (search) {
@@ -82,7 +84,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
     const { data } = await query
     setJigs(data || [])
     setLoading(false)
-  }, [search, filterStatus, filterCategory, supabase])
+  }, [search, filterStatus, filterCategory, showArchived, supabase])
 
   useEffect(() => {
     fetchJigs()
@@ -113,7 +115,17 @@ export default function JigList({ profile }: { profile: Profile | null }) {
             ({selectedCustomer ? `${selectedCustomer} ` : ''}{displayCount}件)
           </span>
         </h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={() => setShowArchived(v => !v)}
+            className={`text-sm px-3 py-2 rounded-lg border transition ${
+              showArchived
+                ? 'bg-gray-200 text-gray-700 border-gray-300'
+                : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+            }`}
+          >
+            {showArchived ? '廃棄・返却を非表示' : '廃棄・返却を表示'}
+          </button>
           <button
             onClick={() => exportCSV(displayJigs)}
             disabled={displayCount === 0}
