@@ -59,6 +59,11 @@ export default function JigForm({ mode, jig, userId }: Props) {
           jig_id: form.jig_id, action: '新規登録',
           new_values: payload, changed_by: userId,
         })
+        fetch('/api/notify-jig-registration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).catch(console.error)
         router.push(`/jigs/${form.jig_id}`)
       }
     } else {
