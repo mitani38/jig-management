@@ -72,7 +72,7 @@ export default function JigDetail({ jig, profile, history }: { jig: Jig; profile
 
         {showQR && (
           <div className="mt-4 flex flex-col items-center border-t pt-4">
-            <QRCode value={jig.jig_id} size={160} />
+            <QRCode value={`https://jig-management.vercel.app/jigs/${jig.jig_id}`} size={160} />
             <p className="text-xs text-gray-400 mt-2 font-mono">{jig.jig_id}</p>
           </div>
         )}
