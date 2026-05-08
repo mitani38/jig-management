@@ -1,13 +1,11 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Html5Qrcode } from 'html5-qrcode'
 
 export default function QRScanner() {
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState('')
   const scannerRef = useRef<Html5Qrcode | null>(null)
-  const router = useRouter()
 
   async function startScan() {
     setError('')
@@ -23,9 +21,9 @@ export default function QRScanner() {
           setScanning(false)
           try {
             const url = new URL(decodedText)
-            router.push(url.pathname)
+            window.location.href = url.href
           } catch {
-            router.push(`/jigs/${decodedText}`)
+            window.location.href = `/jigs/${decodedText}`
           }
         },
         undefined
