@@ -9,13 +9,16 @@ export default function QRScanner() {
 
   async function startScan() {
     setError('')
-    const scanner = new Html5Qrcode('qr-reader')
+    const scanner = new Html5Qrcode('qr-reader', {
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+      verbose: false,
+    })
     scannerRef.current = scanner
     setScanning(true)
     try {
       await scanner.start(
         { facingMode: 'environment' },
-        { fps: 15, qrbox: { width: 240, height: 240 } },
+        { fps: 30, qrbox: { width: 280, height: 280 } },
         (decodedText) => {
           scanner.stop()
           setScanning(false)
