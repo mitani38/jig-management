@@ -192,10 +192,40 @@ export default function JigList({ profile }: { profile: Profile | null }) {
       {loading ? (
         <div className="text-center py-12 text-gray-400">読み込み中...</div>
       ) : (
-        /* サイドバー + リスト レイアウト（PC） */
-        <div className="flex gap-4">
-          {/* 左サイドバー：客先一覧 */}
-          <div className="hidden sm:block w-48 flex-shrink-0">
+        <>
+          {/* スマホ用：客先ボタン横スクロール */}
+          <div className="sm:hidden mb-3">
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              <button
+                onClick={() => setSelectedCustomer(null)}
+                className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border transition ${
+                  selectedCustomer === null
+                    ? 'bg-blue-800 text-white border-blue-800'
+                    : 'bg-white text-gray-600 border-gray-200'
+                }`}
+              >
+                すべて
+              </button>
+              {customers.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setSelectedCustomer(c)}
+                  className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border transition ${
+                    selectedCustomer === c
+                      ? 'bg-blue-800 text-white border-blue-800'
+                      : 'bg-white text-gray-600 border-gray-200'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* サイドバー + リスト レイアウト（PC） */}
+          <div className="flex gap-4">
+            {/* 左サイドバー：客先一覧 */}
+            <div className="hidden sm:block w-48 flex-shrink-0">
             <div className="bg-white rounded-xl shadow-sm overflow-hidden sticky top-4">
               <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">客先</p>
@@ -233,36 +263,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
             </div>
           </div>
 
-          {/* スマホ用：客先ボタン横スクロール */}
-          <div className="sm:hidden w-full mb-3">
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              <button
-                onClick={() => setSelectedCustomer(null)}
-                className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border transition ${
-                  selectedCustomer === null
-                    ? 'bg-blue-800 text-white border-blue-800'
-                    : 'bg-white text-gray-600 border-gray-200'
-                }`}
-              >
-                すべて
-              </button>
-              {customers.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setSelectedCustomer(c)}
-                  className={`flex-shrink-0 text-sm px-3 py-1.5 rounded-full border transition ${
-                    selectedCustomer === c
-                      ? 'bg-blue-800 text-white border-blue-800'
-                      : 'bg-white text-gray-600 border-gray-200'
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* 右：治具リスト */}
+            {/* 右：治具リスト */}
           <div className="flex-1 min-w-0">
             {displayJigs.length === 0 ? (
               <div className="text-center py-12 text-gray-400">治具が見つかりません</div>
@@ -273,6 +274,7 @@ export default function JigList({ profile }: { profile: Profile | null }) {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   )
