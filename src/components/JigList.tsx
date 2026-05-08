@@ -73,12 +73,13 @@ export default function JigList({ profile }: { profile: Profile | null }) {
       .select('*')
       .order('no', { ascending: true })
 
-    if (showArchived) {
+    if (filterStatus) {
+      query = query.eq('status', filterStatus)
+    } else if (showArchived) {
       query = query.in('status', ['廃棄済', '返却済'])
     } else {
       query = query.not('status', 'in', '("廃棄済","返却済")')
     }
-    if (filterStatus) query = query.eq('status', filterStatus)
     if (filterCategory) query = query.eq('category', filterCategory)
     if (search) {
       query = query.or(
