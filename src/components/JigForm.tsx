@@ -104,13 +104,13 @@ export default function JigForm({ mode, jig, userId }: Props) {
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-5 space-y-4">
         {/* 治具ID */}
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">治具固有ID</label>
+          <label className="block text-xs font-medium text-gray-800 mb-1">治具固有ID</label>
           <div className="flex gap-2">
             <input
               value={form.jig_id}
               readOnly={mode === 'edit'}
               onChange={e => set('jig_id', e.target.value)}
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono bg-gray-50"
+              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono bg-gray-50 text-gray-900"
             />
             {mode === 'new' && (
               <button type="button" onClick={() => set('jig_id', generateId())}
@@ -124,16 +124,16 @@ export default function JigForm({ mode, jig, userId }: Props) {
         {/* 状態・分類 */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">状態</label>
+            <label className="block text-xs font-medium text-gray-800 mb-1">状態</label>
             <select value={form.status} onChange={e => set('status', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
               {JIG_STATUS_OPTIONS.map(s => <option key={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">分類</label>
+            <label className="block text-xs font-medium text-gray-800 mb-1">分類</label>
             <select value={form.category} onChange={e => set('category', e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900">
               <option value="">選択してください</option>
               {JIG_CATEGORY_OPTIONS.map(c => <option key={c}>{c}</option>)}
             </select>
@@ -143,7 +143,7 @@ export default function JigForm({ mode, jig, userId }: Props) {
         {/* テキストフィールド */}
         {fields.map(f => (
           <div key={f.key}>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-xs font-medium text-gray-800 mb-1">
               {f.label}{f.required && <span className="text-red-500 ml-0.5">*</span>}
             </label>
             <input
@@ -151,7 +151,7 @@ export default function JigForm({ mode, jig, userId }: Props) {
               value={form[f.key as keyof typeof form]}
               onChange={e => set(f.key, e.target.value)}
               required={f.required}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900"
             />
           </div>
         ))}
